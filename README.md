@@ -8,7 +8,9 @@ Please direct any implementation questions to the edX discussion forums.
 
 Contributors
 -----------
-* kirbs-
+* kirbs- 
 * henryf
 * kusimari
 * BartoszKP
+* danielfmt
+* Xelio
