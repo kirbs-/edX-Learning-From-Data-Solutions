@@ -8,9 +8,12 @@ Please direct any implementation questions to the edX discussion forums.
 
 Contributors
 -----------
-* kirbs- 
-* henryf
-* kusimari
-* BartoszKP
-* danielfmt
-* Xelio
+* kirbs- (Python - Homework 1)
+* henryf (PHP - Homework 1)
+* kusimari (Scala - Homework 1)
+* BartoszKP (Python OO - homework 1)
+* danielfmt (Octave - Homework 1)
+* Xelio (Javascript - Homework 1)
+* Rodic (OCaml - Homework 1)
+* davluangu (MATLAB - Homework 1)
+* bast0079 (Java - Homework 1)
