@@ -17,3 +17,4 @@ Contributors
 * Rodic (OCaml - Homework 1)
 * davluangu (MATLAB - Homework 1)
 * bast0079 (Java - Homework 1)
+* fredParis (R - Homework 1)
