@@ -18,3 +18,6 @@ Contributors
 * davluangu (MATLAB - Homework 1)
 * bast0079 (Java - Homework 1)
 * fredParis (R - Homework 1)
+* PedroCV (MATLAB - Homework 1)
+* FranckDernoncourt (Python - Homework 1)
+* sanealytics (R - Homework 1)
