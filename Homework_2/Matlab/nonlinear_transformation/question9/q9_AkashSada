@@ -1,0 +1,57 @@
+function [w] = nonlinQ9()
+
+%Save the file as nonlinQ9.m
+%Code is not perfect, some errors in the sign, but the weights are good, if you are reading this please
+%look into why this is happening, it still gives you the right answer.
+
+
+%Generate 1000 Training examples
+x = ones(1000,1);
+y = zeros(1000,2);
+    for n=1:1000
+        x(n,2)=random('uniform',-1,1);
+        x(n,3)=random('uniform',-1,1);
+    end
+    x(:,4)=x(:,2).*x(:,3);
+    x(:,5)=x(:,2).^2;
+    x(:,6)=x(:,3).^2;
+    
+%classify the points based on the target function given
+    for n=1:1000
+        if x(n,2)>sqrt(0.6)||x(n,2)<-sqrt(0.6)
+            y(n,1)=-1;
+            y(n,2)=-850;
+        elseif x(n,3)>sqrt(-(x(n,2)^(2))+0.6)||x(n,3)<-sqrt(-(x(n,2)^(2))+0.6)
+            y(n,1)=-1;
+            y(n,2)=-850;
+        else
+            y(n,1)=1;
+            y(n,2)=-4250;
+        end
+    end
+    
+% 10% Error noise
+randnum = randperm(1000,100);
+    for n=1:100
+        if y(randnum(1,n),1)==1
+            y(randnum(1,n),1)=-1;
+            y(randnum(1,n),2)=-850;
+        else
+            y(randnum(1,n),1)=1;
+            y(randnum(1,n),2)=-4250;
+        end
+    end
+    
+% Linear regression
+
+    %weights
+    
+    xt=x.';
+    xtemp = xt*x;
+    xtemp=inv(xtemp);
+    xtemp=xtemp*xt;
+    w = xtemp*y(:,1);
+
+
+end
+

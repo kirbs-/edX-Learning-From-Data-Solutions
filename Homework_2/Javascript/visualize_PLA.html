@@ -1,0 +1,138 @@
+<html>
+<head>
+</head>
+<body>
+<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script type="text/JavaScript" src="jsDraw2D.js"></script>
+<script type="text/JavaScript" src="drawing.js"></script>
+<script type="text/JavaScript" src="TestPlane.js"></script>
+<script type="text/JavaScript" src="PLA.js"></script>
+<div id="control">
+  <div>
+    <label for="N">N = </label>
+    <input type="text" name="N" id="N" value="100" />
+  </div>
+  <div>
+    <button id="train">Train until all N correct</button>
+    <button id="step">Train one misclassified point</button>
+    <button id="animate">Animating the training</button>
+  </div>
+  <div>
+    <button id="reset">Reset</button>
+  </div>
+</div>
+<div id="canvas" style="position:relative;width:500px;height:500px;" />
+<script type="text/JavaScript">
+  window.generateDataSet = function(NumberOfN, plane) {
+    var result = [];
+    for(var i = 0; i < NumberOfN; i++) {
+      var point = plane.randomPoint();
+      var output = plane.getOutput(point);
+      result.push({point: point, output: output});
+    }
+    return result;
+  }
+
+  window.untilFit = function(NumberOfN) {
+    var plane = new window.TestPlane(-1,1,-1,1);
+    var dataSet = window.generateDataSet(NumberOfN, plane);
+    var pla = new window.PLA([0,0,0], function(x) {return Math.sign(x);});
+
+    var completeCallback = function(weight, iteration) {
+      window.initCanvas();
+      window.drawTargetLine(plane)
+      window.drawDataSet(dataSet);
+      window.drawComplete(weight, iteration, pla, plane);
+    }
+
+    window.reset();
+    pla.trainSet(dataSet, false, null, completeCallback);
+  }
+
+  window.animateTraining = function(NumberOfN) {
+    var plane = new window.TestPlane(-1,1,-1,1);
+    var dataSet = window.generateDataSet(NumberOfN, plane);
+    var pla = new window.PLA([0,0,0], function(x) {return Math.sign(x);});
+
+    var iterationCallback = function(weightCurrent, weightsBefore, iteration, trainedPoint) {
+      window.initCanvas();
+      window.drawTargetLine(plane)
+      window.drawDataSet(dataSet);
+      window.drawIteration(weightCurrent, weightsBefore, iteration, trainedPoint, pla, plane);
+      window.timer = setTimeout(function() {pla.trainSet(dataSet, true, iterationCallback);}, 500);;
+    }
+
+    window.reset();
+    pla.trainSet(dataSet, true, iterationCallback);
+  }
+
+  window.trainOnce = function(NumberOfN, onlyDrawResult, callback) {
+    // Initialize
+    if(!window.currentPLA) window.currentPLA = new window.PLA([0,0,0], function(x) {return Math.sign(x);});
+    if(!window.currentPlane) window.currentPlane = new window.TestPlane(-1,1,-1,1);
+    if(!window.currentDataSet) window.currentDataSet = window.generateDataSet(NumberOfN, currentPlane);
+
+    var iterationCallback = function(weightCurrent, weightsBefore, iteration, trainedPoint) {
+      window.initCanvas();
+      window.drawTargetLine(currentPlane)
+      window.drawDataSet(currentDataSet);
+      window.drawIteration(weightCurrent, weightsBefore, iteration, trainedPoint, currentPLA, currentPlane);
+    }
+
+    currentPLA.trainSet(currentDataSet, true, iterationCallback);
+  }
+
+  window.drawIteration = function(weightCurrent, weightsBefore, iteration, trainedPoint, pla, plane) {
+    var trainedLine = window.weightsToLine(weightCurrent, plane);
+    var beforeTrainedLine = window.weightsToLine(weightsBefore, plane);
+
+    var label1 = 'Weights before: ' + window.joinWithRounding(weightsBefore,4) + '<br />'
+              + 'Weights after: ' + window.joinWithRounding(weightCurrent,4) + '<br />'
+              + 'Trained point: ' + window.joinWithRounding(trainedPoint,4);
+    var label2 = 'Iteration: ' + iteration + '<br />'
+               + 'Error rate: ' + window.getErrorRate(pla, plane);
+
+    window.plotLine(trainedLine, greenPen);
+    window.plotLine(beforeTrainedLine, pinkPen);
+    window.plotCircle(trainedPoint, orangePen);
+    window.gr.drawText(label1, new jsPoint(-1, 1.24), smallFont, black, 1, 'center');
+    window.gr.drawText(label2, new jsPoint(0, 1.24), smallFont, black, 1, 'center');
+  }
+
+  window.drawComplete = function(weightCurrent, iteration, pla, plane) {
+    var trainedLine = window.weightsToLine(weightCurrent, plane);
+
+    var label = 'Weights: ' + window.joinWithRounding(weightCurrent,4) + '<br />'
+              + 'Iteration: ' + iteration + '<br />'
+              + 'Error rate: ' + window.getErrorRate(pla, plane);
+
+    window.plotLine(trainedLine, greenPen);
+    window.gr.drawText(label, new jsPoint(-1, 1.24), smallFont, black, 1, 'center');
+  }
+
+  window.getErrorRate = function(pla, plane) {
+    var numberOfErrorTestPoint = 100000;
+    var errorPointCount = 0;
+    for(var i = 0; i < numberOfErrorTestPoint; i++) {
+      var testErrorPoint = plane.randomPoint();
+      if(plane.getOutput(testErrorPoint) !== pla.getOutput(testErrorPoint)) errorPointCount += 1;
+    }
+    return errorPointCount / numberOfErrorTestPoint;
+  }
+
+  window.reset = function() {
+    window.clearTimeout(window.timer);
+    window.currentPLA = null;
+    window.currentPlane = null;
+    window.currentDataSet = null;
+    window.initCanvas();
+  }
+
+  window.initCanvas();
+  $('#train').on('click', function() { window.untilFit($('#N').val()); });
+  $('#step').on('click', function() { window.trainOnce($('#N').val()); });
+  $('#animate').on('click', function() { window.animateTraining($('#N').val()); });
+  $('#reset').on('click', function() { window.reset(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,276 @@
+<html>
+<head>
+</head>
+<body>
+<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script type="text/JavaScript" src="jsDraw2D.js"></script>
+<script type="text/JavaScript" src="drawing.js"></script>
+<script type="text/JavaScript" src="math.min.js"></script>
+<script type="text/JavaScript" src="TestPlane.js"></script>
+<script type="text/JavaScript" src="PLA.js"></script>
+<script type="text/JavaScript" src="Linear_Regression.js"></script>
+<script type="text/JavaScript" src="Quadratic_Function_Solver.js"></script>
+<div id="control">
+  <div>
+    <label for="N">N = </label>
+    <input type="text" name="N" id="N" value="1000" />
+    <label for="testTimes">Test times = </label>
+    <input type="text" name="testTimes" id="testTimes" value="1000" />
+  </div>
+  <br />
+  <div>
+    <div>f(x,y) = sign(a + b*x + c*y + d*x*y + e*x^2 + f*y^2)</div>
+    <span>
+      <label for="c_a">a = </label>
+      <input type="text" name="c_a" id="c_a" value="-0.1" size=4/>
+      <label for="c_b">b = </label>
+      <input type="text" name="c_b" id="c_b" value="0" size=4/>
+      <label for="c_c">c = </label>
+      <input type="text" name="c_c" id="c_c" value="0" size=4/>
+      <label for="c_d">d = </label>
+      <input type="text" name="c_d" id="c_d" value="6" size=4/>
+      <label for="c_e">e = </label>
+      <input type="text" name="c_e" id="c_e" value="1.5" size=4/>
+      <label for="c_f">f = </label>
+      <input type="text" name="c_f" id="c_f" value="-0.8" size=4/>
+    </span>
+  </div>
+  <div>
+    <div>Without transformation, with vector(1, x, y): </div>
+    <button id="lr_wo_trans">Linear Regression</button>
+    <button id="lr_wo_trans_multi">Linear Regression multiple times</button>
+  </div>
+  <br />
+  <div>
+    <div>Without transformation, with vector(1, x, y, xy, x^2, y^2): </div>
+    <button id="lr_with_trans">Linear Regression</button>
+    <button id="lr_with_trans_multi">Linear Regression multiple times</button>
+  </div>
+  <br />
+  <div>
+    <button id="reset">Reset</button>
+  </div>
+</div>
+<div id="canvas" style="position:relative;width:500px;height:500px;left:200px" />
+<script type="text/JavaScript">
+  var f = function(point) {
+    return Math.sign(
+      (parseFloat($('#c_a').val()) || 0) +
+      (parseFloat($('#c_b').val()) || 0) * point[0] +
+      (parseFloat($('#c_c').val()) || 0) * point[1] +
+      (parseFloat($('#c_d').val()) || 0) * point[0] * point[1] +
+      (parseFloat($('#c_e').val()) || 0) * point[0] * point[0] +
+      (parseFloat($('#c_f').val()) || 0) * point[1] * point[1]);
+  };
+  var noise = function(point, output) {return -1 * output};
+  var noiseFraction = 0.18;
+  var plane = new window.TestPlane(-1,1,-1,1);
+  var transform = function(point) {
+    return [point[0],
+            point[1],
+            point[0]*point[1],
+            Math.pow(point[0], 2),
+            Math.pow(point[1], 2)];
+  };
+
+  window.generateDataSet = function(NumberOfN, plane, outputFunction, noiseFraction, noiseFunction) {
+    var result = [];
+    var NumberOfNoise = NumberOfN * noiseFraction;
+    for(var i = 0; i < NumberOfN; i++) {
+      var point = plane.randomPoint();
+      var output = outputFunction(point);
+      if(i < NumberOfNoise) output = noiseFunction(point, output);
+      result.push({point: point, output: output});
+    }
+
+    result = shuffle(result);
+    return result;
+  }
+
+  window.transformDataSet = function(dataSet, transformFunction) {
+    var result = [];
+    for(var i in dataSet) {
+      result.push({point: transformFunction(dataSet[i].point), output: dataSet[i].output});
+    }
+    return result;
+  }
+
+
+
+  window.regressionWOTransformation = function(NumberOfN) {
+    console.log('regressionWOTransformation');
+    var dataSet = window.generateDataSet(NumberOfN, plane, f, noiseFraction, noise);
+    var lr = new window.Linear_Regression();
+    
+    var completeCallback = function(weight) {
+      window.initCanvas();
+      window.drawDataSet(dataSet);
+      window.drawRegressionComplete(weight, lr, plane, dataSet);
+    }
+
+    window.initCanvas();
+    lr.regression(dataSet, completeCallback);
+  }
+
+
+
+  window.regressionWOTransformationMultiTimes = function(NumberOfN, times) {
+    console.log('regressionWOTransformationMultiTimes');
+    var totalEin = 0;
+    for(var i = 0; i < times; i++) {
+      var dataSet = window.generateDataSet(NumberOfN, plane, f, noiseFraction, noise);
+      var lr = new window.Linear_Regression();
+      lr.regression(dataSet);
+      totalEin += window.getErrorFraction(lr, dataSet);
+    }
+    var avgEin = totalEin/times;
+
+    var label = 'Ein: ' + avgEin;
+    window.initCanvas();
+
+    window.gr.drawText(label, new jsPoint(-1, 1.24), smallFont, black, 1, 'center');
+  }
+
+
+
+  window.regressionWithTransformation = function(NumberOfN) {
+    console.log('regressionWithTransformation');
+    var dataSet = window.generateDataSet(NumberOfN, plane, f, noiseFraction, noise);
+    var lr = new window.Linear_Regression();
+
+    var transformedDataSet = window.transformDataSet(dataSet, transform);
+    var transformedEoutDataSet = window.transformDataSet(window.generateDataSet(1000, plane, f, noiseFraction, noise), transform);
+
+    lr.regression(transformedDataSet);
+
+    window.initCanvas();
+    window.drawDataSet(dataSet);
+    window.drawTrainedResult(lr._weights, plane);
+    window.drawTransformedRegressionComplete(lr._weights, lr, transformedDataSet, transformedEoutDataSet);
+  }
+
+
+
+  window.regressionWithTransformationMultiTimes = function(NumberOfN, times) {
+    console.log('regressionWithTransformationMultiTimes');
+
+    var totalEin = 0;
+    var totalEout = 0;
+    var totalWeights = [0,0,0,0,0,0];
+    for(var i = 0; i < times; i++) {
+      var transformedDataSet = window.transformDataSet(window.generateDataSet(NumberOfN, plane, f, noiseFraction, noise), transform);
+      var transformedEoutDataSet = window.transformDataSet(window.generateDataSet(1000, plane, f, noiseFraction, noise), transform);
+      var lr = new window.Linear_Regression();
+      lr.regression(transformedDataSet);
+
+      totalEin += window.getErrorFraction(lr, transformedDataSet);
+      totalEout += window.getErrorFraction(lr, transformedEoutDataSet);
+      for(var j in totalWeights) {
+        totalWeights[j] += lr._weights[j];
+      }
+    }
+    var avgEin = totalEin/times;
+    var avgEout = totalEout/times;
+    var avgWeights = $.map(totalWeights, function(w) {return w/times;});
+
+    var label = 'weights: ' + window.joinWithRounding(avgWeights, 4) + '<br />'
+              + 'Ein: ' + avgEin + '<br />'
+              + 'Eout: ' + avgEout;
+
+    window.initCanvas();
+    window.gr.drawText(label, new jsPoint(-1, 1.24), smallFont, black, 1, 'center');
+  }
+
+
+
+
+  window.drawRegressionComplete = function(weightCurrent, lr, plane, dataSet) {
+    var trainedLine = window.weightsToLine(weightCurrent, plane);
+
+    var label = 'Weights: ' + window.joinWithRounding(weightCurrent,4) + '<br />'
+              + 'Ein: ' + window.getErrorFraction(lr, dataSet);
+
+    window.plotLine(trainedLine, greenPen);
+    window.gr.drawText(label, new jsPoint(-1, 1.24), smallFont, black, 1, 'center');
+  }
+
+  window.drawTransformedRegressionComplete = function(weightCurrent, lr, dataSet, EoutDataSet) {
+    var label = 'Weights: ' + window.joinWithRounding(weightCurrent, 4) + '<br />'
+              + 'Ein: ' + window.getErrorFraction(lr, dataSet) + '<br />'
+              + 'Eout: '+ window.getErrorFraction(lr, EoutDataSet);
+
+    window.gr.drawText(label, new jsPoint(-1, 1.24), smallFont, black, 1, 'center');
+  }
+
+  window.drawTrainedResult = function(weights, plane){
+    console.log('drawTrainedResult');
+    var fx = function(y, weights) {
+      return [weights[4], weights[1] + weights[3]*y, weights[0] + weights[2]*y + weights[5]*y*y];
+    };
+    var fy = function(x, weigths) {
+      return [weights[5], weights[2] + weights[3]*x, weights[0] + weights[1]*x + weights[4]*x*x];
+    };
+    var x_step = (plane._x_max - plane._x_min) / 300;
+    var y_step = (plane._y_max - plane._y_min) / 300;
+
+    var points_by_x_upper = [];
+    var points_by_x_lower = [];
+    var points_by_y_upper = [];
+    var points_by_y_lower = [];
+
+    for(var y = plane._y_min; y < plane._y_max; y = y + y_step) {
+      var constants = fx(y, weights);
+
+      var x = Quadratic.solve(constants[0], constants[1], constants[2]);
+      if(x) {
+        points_by_y_upper.push([x[0],y]);
+        points_by_y_lower.push([x[1],y]);
+      }
+    }
+
+    for(var x = plane._x_min; x < plane._x_max; x = x + x_step) {
+      var constants = fy(x, weights);
+      var y = Quadratic.solve(constants[0], constants[1], constants[2]);
+      if(y) {
+        points_by_x_upper.push([x,y[0]]);
+        points_by_x_lower.push([x,y[1]]);
+      }
+    }
+
+
+    for(var i = 0; i < points_by_x_upper.length; i++) {
+      window.gr.fillCircle(green,new jsPoint(points_by_x_upper[i][0],points_by_x_upper[i][1]), 0.005);
+      window.gr.fillCircle(green,new jsPoint(points_by_x_lower[i][0],points_by_x_lower[i][1]), 0.005);
+      //window.plotLine([points_by_x_upper[i], points_by_x_upper[i+1]], greenPen);
+      //window.plotLine([points_by_x_lower[i], points_by_x_lower[i+1]], greenPen);
+    }
+
+    for(var j = 0; j < points_by_y_upper.length; j++) {
+      window.gr.fillCircle(green,new jsPoint(points_by_y_upper[j][0],points_by_y_upper[j][1]), 0.005);
+      window.gr.fillCircle(green,new jsPoint(points_by_y_lower[j][0],points_by_y_lower[j][1]), 0.005);
+      //window.plotLine([points_by_y_upper[j], points_by_y_upper[j+1]], greenPen);
+      //window.plotLine([points_by_y_lower[j], points_by_y_lower[j+1]], greenPen);
+    }
+  }
+
+  window.getErrorFraction = function(lr, dataSet) {
+    var errorPointCount = 0;
+    for(var i in dataSet) {
+      if(dataSet[i].output !== Math.sign(lr.getOutput(dataSet[i].point))) errorPointCount += 1;
+    }
+    return errorPointCount / dataSet.length;
+  }
+
+  window.shuffle = function (o){
+    for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+    return o;
+  };
+
+  window.initCanvas();
+  $('#lr_wo_trans').on('click', function() { window.regressionWOTransformation($('#N').val()); });
+  $('#lr_wo_trans_multi').on('click', function() { window.regressionWOTransformationMultiTimes($('#N').val(), $('#testTimes').val()); });
+  $('#lr_with_trans').on('click', function() { window.regressionWithTransformation($('#N').val()); });
+  $('#lr_with_trans_multi').on('click', function() { window.regressionWithTransformationMultiTimes($('#N').val(), $('#testTimes').val()); });
+</script>
+</body>
+</html>

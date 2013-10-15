@@ -1,0 +1,5 @@
+%This is a script save it as runQ8.m make sure you have nonlinQ8.m in the folder
+for n=1:10
+    Ein(n,1) = nonlinQ8();
+end
+Ein=mean(Ein);

@@ -1,0 +1,82 @@
+function [Eout] = q6(TE)
+%TE is the input variable which is the number of training examples in this
+%case 1000
+
+%Save the file as q6.m
+
+    %generates the random points on the x_1,x_2 plane
+    x = ones(TE,1);
+    for n=1:TE
+        x(n,2)=random('uniform',-1,1);
+        x(n,3)=random('uniform',-1,1);
+    end
+    
+    
+    %random data to draw the straight line
+    [xsam,idx]=datasample(x,2);
+ 
+    %slope
+    slope=(xsam(2,3)-xsam(1,3))/(xsam(2,2)-xsam(1,2));
+    %Line
+    yline=(slope*x(:,2))-((slope*xsam(2,2))-xsam(2,3));
+    
+    
+    %assigning +-1 values
+    ybin=[zeros(TE,1),zeros(TE,1)];
+    for n=1:TE
+        if x(n,3)>=yline(n,1)
+            ybin(n,1) = 1;
+            ybin(n,2)=-4250;
+        else
+            ybin(n,1) = -1;
+            ybin(n,2)=-850;
+        end
+    end
+    
+    %weights
+    xt=x.';
+    xtemp = xt*x;
+    xtemp=inv(xtemp);
+    xtemp=xtemp*xt;
+    w = xtemp*ybin(:,1);
+    
+    %regression line
+    yreg = -(w(1,1)/w(3,1))-(w(2,1)/w(3,1))*(x(:,2));
+    
+    
+    %Compute +-1 values for regression line
+    ybinreg=[zeros(TE,1),zeros(TE,1)];
+    for n=1:TE
+        if x(n,3)>=yreg(n,1)
+            ybinreg(n,1) = 1;
+        else
+            ybinreg(n,1) = -1;
+        end
+    end
+    %compare the misclassified points in g
+    counter = 0;
+    for n=1:TE
+        if ybinreg(n,1)~=ybin(n,1)
+        counter = counter+1;
+        end
+    end
+    
+    %Ein
+    Eout=counter/TE;
+    
+    
+    %plotlines
+    %points
+    scatter(x(:,2),x(:,3),30,ybin(:,2),'filled');
+    hold on;
+    %f
+    plot(x(:,2),yline,'red');
+    hold on;
+    %g
+    plot(x(:,2),yreg,'green');
+    hold off;
+    
+   
+    
+end
+

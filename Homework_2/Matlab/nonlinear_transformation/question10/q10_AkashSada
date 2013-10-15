@@ -1,0 +1,72 @@
+function [E_out] = nonlinQ10()
+
+%Save the file as nonlinQ10.m
+%% This is one experiment, Run this 1000 times and take the mean.
+
+
+
+%Generate 1000 Training examples
+x = ones(1000,1);
+y = zeros(1000,2);
+    for n=1:1000
+        x(n,2)=random('uniform',-1,1);
+        x(n,3)=random('uniform',-1,1);
+    end
+    x(:,4)=x(:,2).*x(:,3);
+    x(:,5)=x(:,2).^2;
+    x(:,6)=x(:,3).^2;
+    
+%Classify the points based on target function
+    for n=1:1000
+        if x(n,2)>sqrt(0.6)||x(n,2)<-sqrt(0.6)
+            y(n,1)=-1;
+            y(n,2)=-850;
+        elseif x(n,3)>sqrt(-(x(n,2)^(2))+0.6)||x(n,3)<-sqrt(-(x(n,2)^(2))+0.6)
+            y(n,1)=-1;
+            y(n,2)=-850;
+        else
+            y(n,1)=1;
+            y(n,2)=-4250;
+        end
+    end
+    
+% 10% Error noise
+randnum = randperm(1000,100);
+    for n=1:100
+        if y(randnum(1,n),1)==1
+            y(randnum(1,n),1)=-1;
+            y(randnum(1,n),2)=-850;
+        else
+            y(randnum(1,n),1)=1;
+            y(randnum(1,n),2)=-4250;
+        end
+    end
+    
+% Linear regression after transformation
+    
+    %Weights
+    xt=x.';
+    xtemp = xt*x;
+    xtemp=inv(xtemp);
+    xtemp=xtemp*xt;
+    w = xtemp*y(:,1);
+    
+    %classify the points based on weight;
+    ytrans = zeros(1000,1);
+    for n=1:1000
+      ytrans(n,1)=sign(w(1,1)+(w(2,1)*x(n,2))+(w(3,1)*x(n,3))+(w(4,1)*x(n,4))+(w(5,1)*x(n,5))+(w(6,1)*x(n,6)));
+    end
+    
+%Compute misclassified points
+    
+    counter = 0;
+    for n=1:1000
+        if ytrans(n,1)~=y(n,1)
+        counter = counter+1;
+        end
+    end
+    
+    E_out = counter/1000;
+
+
+end

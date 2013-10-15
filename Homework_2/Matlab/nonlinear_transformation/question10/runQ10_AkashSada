@@ -1,0 +1,7 @@
+%save this file as runQ10.m
+%Confirm that you have nonlinQ10.m in the file directory
+
+for n=1:1000
+  E_out(n,1) = nonlinQ10();
+end
+E_out = mean(E_out);

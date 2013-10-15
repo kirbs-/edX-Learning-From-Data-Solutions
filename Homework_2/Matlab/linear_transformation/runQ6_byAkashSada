@@ -1,0 +1,6 @@
+%Confirm you have q6.m in a folder and save this as a script run!6.m
+
+for n=1:1000
+  Eout(n,1) = q6(1000);
+end
+Eout = mean(Eout);

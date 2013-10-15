@@ -1,0 +1,191 @@
+<html>
+<head>
+</head>
+<body>
+<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script type="text/JavaScript" src="jsDraw2D.js"></script>
+<script type="text/JavaScript" src="drawing.js"></script>
+<script type="text/JavaScript" src="math.min.js"></script>
+<script type="text/JavaScript" src="TestPlane.js"></script>
+<script type="text/JavaScript" src="PLA.js"></script>
+<script type="text/JavaScript" src="Linear_Regression.js"></script>
+<div id="control">
+  <div>
+    <label for="N">N = </label>
+    <input type="text" name="N" id="N" value="100" />
+  </div>
+  <div>
+    <label for="testTimes">Test times = </label>
+    <input type="text" name="testTimes" id="testTimes" value="1000" />
+  </div>
+  <div>
+    <button id="lr_once">Linear Regression one time</button>
+    <button id="lr_multi">Linear Regression multiple times</button>
+    <button id="lr_to_pla">Animating Linear Regression -> PLA</button>
+    <button id="lr_to_pla_multi">Linear Regression -> PLA multiple times</button>
+  </div>
+  <div>
+    <button id="reset">Reset</button>
+  </div>
+</div>
+<div id="canvas" style="position:relative;width:500px;height:500px;left:200px" />
+<script type="text/JavaScript">
+  window.generateDataSet = function(NumberOfN, plane) {
+    var result = [];
+    for(var i = 0; i < NumberOfN; i++) {
+      var point = plane.randomPoint();
+      var output = plane.getOutput(point);
+      result.push({point: point, output: output});
+    }
+    return result;
+  }
+
+  window.regressionOnce = function(NumberOfN) {
+    console.log('regressionOnce');
+    var plane = new window.TestPlane(-1,1,-1,1);
+    var dataSet = window.generateDataSet(NumberOfN, plane);
+    var lr = new window.Linear_Regression();
+
+    var completeCallback = function(weight) {
+      window.initCanvas();
+      window.drawTargetLine(plane)
+      window.drawDataSet(dataSet);
+      window.drawRegressionComplete(weight, lr, plane);
+    }
+
+    window.initCanvas();
+    lr.regression(dataSet, completeCallback);
+  }
+
+  window.regressionMultiTimes = function(NumberOfN, times) {
+    console.log('regressionMultiTimes');
+
+    window.initCanvas();
+    var totalEin = 0;
+    var totalEout = 0;
+    for(var i = 0; i < times; i++) {
+      var plane = new window.TestPlane(-1,1,-1,1);
+      var dataSet = window.generateDataSet(NumberOfN, plane);
+      var lr = new window.Linear_Regression();
+      lr.regression(dataSet);
+      totalEin += window.getErrorInSampleFraction(lr, dataSet);
+      totalEout += window.getErrorOutSampleFraction(lr, plane, 1000);
+    }
+    var avgEin = totalEin/times;
+    var avgEout = totalEout/times;
+
+    var label = 'Ein: ' + avgEin + '<br />'
+              + 'Eout: ' + avgEout;
+
+    window.gr.drawText(label, new jsPoint(-1, 1.24), smallFont, black, 1, 'center');
+  }
+
+  window.animateRegressionThenPLA = function(NumberOfN) {
+    console.log('animateRegressionThenPLA');
+    var plane = new window.TestPlane(-1,1,-1,1);
+    var dataSet = window.generateDataSet(NumberOfN, plane);
+    var lr = new window.Linear_Regression();
+    var pla = new window.PLA([0,0,0], function(x) {return Math.sign(x);});
+
+    var iterationPLACallback = function(weightCurrent, weightsBefore, iteration, trainedPoint) {
+      window.initCanvas();
+      window.drawTargetLine(plane)
+      window.drawDataSet(dataSet);
+      window.drawPLAIteration(weightCurrent, weightsBefore, iteration, trainedPoint, pla, plane);
+      window.timer = setTimeout(function() {pla.trainSet(dataSet, true, iterationPLACallback);}, 500);
+    }
+
+    var completeLRCallback = function(weight) {
+      window.initCanvas();
+      window.drawTargetLine(plane)
+      window.drawDataSet(dataSet);
+      window.drawRegressionComplete(weight, lr, plane);
+      pla._weights = lr._weights;
+      setTimeout(function() {pla.trainSet(dataSet, true, iterationPLACallback);}, 1500);
+    }
+
+    window.initCanvas();
+    lr.regression(dataSet, completeLRCallback);
+  }
+
+  window.regressionThenPLAMultiTimes = function(NumberOfN, times) {
+    console.log('regressionThenPLAMultiTimes');
+
+    window.initCanvas();
+    var totalIteration = 0;
+
+    for(var i = 0; i < times; i++) {
+      var plane = new window.TestPlane(-1,1,-1,1);
+      var dataSet = window.generateDataSet(NumberOfN, plane);
+      var lr = new window.Linear_Regression();
+
+      lr.regression(dataSet);
+      var pla = new window.PLA(lr._weights, function(x) {return Math.sign(x);});
+      pla.trainSet(dataSet, false);
+      totalIteration += pla._iteration
+    }
+
+    var avrIteration = totalIteration/times;
+    var label = 'Average iterations: ' + avrIteration;
+
+    window.gr.drawText(label, new jsPoint(-1, 1.24), smallFont, black, 1, 'center');
+  }
+
+  window.getErrorInSampleFraction = function(lr, dataSet) {
+    var errorPointCount = 0;
+    for(var i in dataSet) {
+      if(dataSet[i].output !== Math.sign(lr.getOutput(dataSet[i].point))) errorPointCount += 1;
+    }
+    return errorPointCount / dataSet.length;
+  }
+
+  window.getErrorOutSampleFraction = function(lr, plane, numberOfSample) {
+    var errorPointCount = 0;
+    for(var i = 0; i < numberOfSample; i++) {
+      var testErrorPoint = plane.randomPoint();
+      if(plane.getOutput(testErrorPoint) !== Math.sign(lr.getOutput(testErrorPoint))) errorPointCount += 1;
+    }
+    return errorPointCount / numberOfSample;
+  }
+
+  window.drawRegressionComplete = function(weightCurrent, lr, plane) {
+    var trainedLine = window.weightsToLine(weightCurrent, plane);
+
+    var label = 'Weights: ' + window.joinWithRounding(weightCurrent,4) + '<br />'
+              + 'Error rate: ' + window.getErrorOutSampleFraction(lr, plane, 100000);
+
+    window.plotLine(trainedLine, greenPen);
+    window.gr.drawText(label, new jsPoint(-1, 1.24), smallFont, black, 1, 'center');
+  }
+
+  window.drawPLAIteration = function(weightCurrent, weightsBefore, iteration, trainedPoint, pla, plane) {
+    var trainedLine = window.weightsToLine(weightCurrent, plane);
+    var beforeTrainedLine = window.weightsToLine(weightsBefore, plane);
+
+    var label1 = 'Weights before: ' + window.joinWithRounding(weightsBefore,4) + '<br />'
+              + 'Weights after: ' + window.joinWithRounding(weightCurrent,4) + '<br />'
+              + 'Trained point: ' + window.joinWithRounding(trainedPoint,4);
+    var label2 = 'Iteration: ' + iteration + '<br />'
+               + 'Error rate: ' + window.getErrorOutSampleFraction(pla, plane, 100000);
+
+    window.plotLine(trainedLine, greenPen);
+    window.plotLine(beforeTrainedLine, pinkPen);
+    window.plotCircle(trainedPoint, orangePen);
+    window.gr.drawText(label1, new jsPoint(-1, 1.24), smallFont, black, 1, 'center');
+    window.gr.drawText(label2, new jsPoint(0, 1.24), smallFont, black, 1, 'center');
+  }
+
+  window.reset = function() {
+    window.clearTimeout(window.timer);
+    window.initCanvas();
+  }
+
+  window.initCanvas();
+  $('#lr_once').on('click', function() { window.regressionOnce($('#N').val()); });
+  $('#lr_multi').on('click', function() { window.regressionMultiTimes($('#N').val(), $('#testTimes').val()); });
+  $('#lr_to_pla').on('click', function() { window.animateRegressionThenPLA($('#N').val()); });
+  $('#lr_to_pla_multi').on('click', function() { window.regressionThenPLAMultiTimes($('#N').val(), $('#testTimes').val()); });
+  $('#reset').on('click', function() { window.reset(); });
+</script>
+</body>
+</html>

@@ -25,3 +25,5 @@ Contributors
 * PedroCV (MATLAB)
 * FranckDernoncourt (Python)
 * sanealytics (R)
+* akashsadashivapeth (MATLAB)
+* SamLau (Octave)
