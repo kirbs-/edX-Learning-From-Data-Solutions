@@ -15,7 +15,7 @@ Contributors
 * kirbs- (Python)
 * henryf (PHP)
 * kusimari (Scala)
-* BartoszKP (Python OO)
+* BartoszKP (Python)
 * danielfmt (Octave)
 * Xelio (Javascript)
 * Rodic (OCaml)
@@ -28,3 +28,4 @@ Contributors
 * akashsadashivapeth (MATLAB)
 * SamLau (Octave)
 * stochastictinker (C#)
+* AnantSogani (R)
