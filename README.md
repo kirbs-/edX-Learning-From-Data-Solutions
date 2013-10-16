@@ -27,3 +27,4 @@ Contributors
 * sanealytics (R)
 * akashsadashivapeth (MATLAB)
 * SamLau (Octave)
+* stochastictinker (C#)
