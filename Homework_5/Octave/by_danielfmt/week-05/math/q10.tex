@@ -1,0 +1,56 @@
+\documentclass{article}
+
+\usepackage{isomath}
+\usepackage{amsmath}
+\usepackage{numprint}
+
+\author{Daniel Fernandes Martins (danielfmt)}
+\title{Question \#10 Solution}
+
+\begin{document}
+
+\maketitle
+
+\textbf{Disclaimer.} This is the reasoning I used to solve the problem; it
+may be wrong though. This is intended just as food for thought.
+
+\section{Perceptron Learning Algorithm as SGD}
+
+This question presents to us a few error functions $e_n(\mathbf{w})$ and asks
+which one can be used in order to implement the Perceptron Learning Algorithm
+(PLA) using Stochastic Gradient Descent (SGD).
+
+\subsection{Similarities Between PLA And SGD}
+
+The PLA is stochastic much like SGD in the sense that we randomly pick one
+example at a time and adjust the weight vector $\mathbf{w}$ a little bit towards
+the minimum; the main difference is that, in PLA, we only pick misclassified
+points, where in SGD the error function is evaluated on all $N$ points of the
+training set.
+
+This observation alone is enough to eliminate all possible options but this one:
+
+\begin{equation*}
+  e_n(\mathbf{w}) = -min(0, y_n\mathbf{w}^\mathsf{T} \mathbf{x}_n)
+\end{equation*}
+
+\subsection{Intuition}
+
+In the context of the Gradient Descent algorithm, the signal
+$\mathbf{w}^\mathsf{T}\mathbf{x}_n$ translates to a probability distribution
+that describes how a given example $\mathbf{x}_n$ will be classified; a largely
+positive signal means $P(y_n=1 | \mathbf{x}_n) \approx 1$, as a largely negative
+signal means $P(y_n=1 | \mathbf{x}_n) \approx 0$ , thanks to the logistic
+function $\theta$.
+
+In this particular error measure, the signal $\mathbf{w}^\mathsf{T}\mathbf{x}_n$
+is multiplied by the target label $y_n$. If both the signal and the target
+label agrees on the sign, i.e. both positive or negative, this means that the
+signal classifies that example correctly, thus the result of this product is
+some number $s \geq 0$ which will be killed by $min(0, s)$.
+
+This trick is used so that only the gradient of misclassified examples are
+allowed to contribute with changes in the weight vector $\mathbf{w}$,
+which is exactly what PLA does.
+
+\end{document}

@@ -1,0 +1,55 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{numprint}
+
+\author{Daniel Fernandes Martins (danielfmt)}
+\title{Question \#4 Solution}
+
+\begin{document}
+
+\maketitle
+
+\section{Partial Derivative of $E(u,v)$}
+
+In this exercise, we are asked to compute the partial derivative
+$\frac{\partial E}{\partial u}$ of an error function that defines a
+hypothetical error surface.
+
+\begin{equation*}
+\frac{\partial}{\partial u} E(u,v) = (ue^v -2ve^{-u})^2
+\end{equation*}
+
+Let's define the partial derivative of each term, step-by-step. First, we apply
+the \textit{power rule}, which says $\frac{\partial}{\partial x} x^n = n \cdot x^{n-1}$:
+
+\begin{equation*}
+\frac{\partial}{\partial u} E(u,v) = 2(ue^v -2ve^{-u})^1 \\ 
+\frac{\partial}{\partial u} (ue^v -2ve^{-u})
+\end{equation*}
+
+Notice that we also applied the \textit{chain rule} to the squared term since
+it contain terms of $u$.
+
+Now, the term $ue^v$, which is $u$ multiplied by a constant, is really simple
+to differentiate:
+
+\begin{equation*}
+\frac{\partial}{\partial u} (ue^v) = 1 \cdot e^v = e^v
+\end{equation*}
+
+Finally, to differentiate a term that looks like $e^u$ we just need to multiply
+it by the derivative of $u$, which is 1 or -1 depending on the sign:
+
+\begin{equation*}
+\frac{\partial}{\partial u} (-2ve^{-u}) = -2ve^{-u} \cdot -1 = 2ve^{-u}
+\end{equation*}
+
+Putting everything together, we have the solution:
+
+\begin{equation*}
+\frac{\partial}{\partial u} E(u, v) = \\
+2(ue^v -2ve^{-u})(e^v + 2ve^{-u})
+\end{equation*}
+
+\end{document}

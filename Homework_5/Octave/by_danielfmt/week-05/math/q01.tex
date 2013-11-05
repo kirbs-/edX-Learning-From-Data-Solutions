@@ -1,0 +1,30 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{numprint}
+
+\author{Daniel Fernandes Martins (danielfmt)}
+\title{Question \#1 Solution}
+
+\begin{document}
+
+\maketitle
+
+\section{Solving for $N$}
+
+Substituting the values for $\sigma$, $d$ and $E_{in}$, and putting the
+following equation in terms of $N$:
+
+
+\begin{align*}
+E_\mathcal{D}[E_{in}(w_{lin})] &= 0.1^2 \left(1 - \frac{8+1}{N} \right) \\
+0.008 &\leq 0.01 \left(1 - \frac{9}{N} \right) \\
+0.008 &\leq 0.01 - \frac{0.09}{N} \\
+-0.002 &\leq - \frac{0.09}{N} \\
+N &\geq 45
+\end{align*}
+
+Since we need to pick the least number of examples $N$ among the alternatives
+that also satisfy this inequality, we'd have to choose $N=100$.
+
+\end{document}
