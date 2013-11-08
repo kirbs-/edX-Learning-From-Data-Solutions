@@ -29,3 +29,4 @@ Contributors
 * SamLau (Octave)
 * stochastictinker (C#)
 * AnantSogani (R)
+* Victoras (C++)
