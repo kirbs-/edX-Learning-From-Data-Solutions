@@ -30,3 +30,4 @@ Contributors
 * stochastictinker (C#)
 * AnantSogani (R)
 * Victoras (C++)
+* fedelebron (Haskell)
