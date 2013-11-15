@@ -1,0 +1,1 @@
+Mathmatica solution provided by Legendre.
