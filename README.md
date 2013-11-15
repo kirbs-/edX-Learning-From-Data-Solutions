@@ -31,3 +31,4 @@ Contributors
 * AnantSogani (R)
 * Victoras (C++)
 * fedelebron (Haskell)
+* Legendre (Mathmatica)
