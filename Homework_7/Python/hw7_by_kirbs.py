@@ -391,7 +391,7 @@ def plaVSsvm(numOfTrials, numOfPoints):
         if(validPoints(points)):
             a,b,c,d, testPoints = generatePoints(10000)
             pla_e_out = eOutPLA(testPoints, perc_weights, x1, y1, x2, y2)
-            machine = machinery(points)
+            machine = machinery(points, 1.0e6)
             svm_e_out = eOutSVM(testPoints, machine, x1, y1, x2, y2)
 ##            print "PLA {}, SVM {}, SVM better? {}".format(pla_e_out, svm_e_out, svm_e_out < pla_e_out)
             if svm_e_out < pla_e_out:
@@ -405,7 +405,7 @@ def plaVSsvm(numOfTrials, numOfPoints):
 #print plaVSsvm(1000,10)
 
 # Question 9/10
-print plaVSsvm(1000, 100, 100.0)
+#print plaVSsvm(1000, 100, 100.0)
 
 
 
