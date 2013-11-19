@@ -1,13 +1,8 @@
 import Control.Applicative ((<$>), (<*>))
 import Control.Monad (forM, forM_, replicateM)
 import Control.Monad.Random (Rand, RandomGen, getRandom, runRand)
-import qualified Data.Array as A
-import qualified Data.Array.Unboxed as U
 import Data.List (genericLength, transpose)
-import Debug.Trace (traceShow)
-import Learning.Perceptron
 import Numeric.LinearAlgebra
-import SVM
 import System.Random (mkStdGen)
 import Text.Printf (printf)
 
@@ -81,52 +76,6 @@ trainAndValidate ps m = average
     errors = map trainLOO (loo ps)
     average = sum errors / genericLength errors
 
--- Exercises 8 - 9
-
-type ClassifiedPoint = ([Double], Bool)
-perceptronSVMComparison :: [ClassifiedPoint] -> [ClassifiedPoint] -> [Double]
-perceptronSVMComparison dataset testset = let pe = perceptronError dataset testset
-                                              (se, nv) = svmError dataset testset
-                                          in [pe, se, nv]
-
-perceptronError :: [ClassifiedPoint] -> [ClassifiedPoint] -> Double
-perceptronError dataset testset = let f = pla dataset
-                                      fxs = map (f . fst) dataset
-                                      ys = map snd testset
-                                      errors = filter id $ zipWith (/=) fxs ys
-                                  in  genericLength errors / genericLength testset
-
-svmError :: [ClassifiedPoint] -> [ClassifiedPoint] -> (Double, Double)
-svmError dataset testset = let n = length dataset
-                               x = A.listArray (1, n) (map fst dataset)
-                               labels = map (((-1)^) . (+1) . fromEnum . snd) dataset
-                               y = U.listArray (1, n) labels
-                               d = DataSet x y
-                               svm = LSSVM (KernelFunction linearKernelFunction) 1 [0..]
-                               SVMSolution alpha sv bias = solve svm d 1e-5 100000
-                           in traceShow (alpha, sv) $ error "fooo"-- undefined
-
-generatePoints :: RandomGen g => Int -> Rand g [ClassifiedPoint]
-generatePoints k = do
-  [px, py, qx, qy] <- replicateM 4 getRandom
-  points <- replicateM k (replicateM 2 getRandom)
-  let checker [x, y] = ((qx - px)*(y - py) - (qy - py)*(x - px)) > 0
-      classifications = map checker points
-  return $ zip points classifications
-
-runComparison :: RandomGen g => Int -> Int -> Rand g [Double]
-runComparison n runs = do
-  results <- replicateM runs runOnce
-  let averages = map ((/ fromIntegral runs) . sum) $ transpose results
-  return averages
-  where
-    k = 10
-    runOnce = do
-      points <- generatePoints (n + k)
-      let dataset = take n points
-          testset = drop n points
-      return $ perceptronSVMComparison dataset testset
-
 main = do
   inputMatrix <- fromFile "in.dta" (35, 3)
   testMatrix <- fromFile "out.dta" (250, 3)
@@ -176,6 +125,3 @@ main = do
         ec = f constantModel
         el = f linearModel
     in putStrLn $ printf "\t%c) Constant: %.5f, Linear: %.5f" label ec el
-
-  let (results, g'') = runRand (runComparison 10 10) g'
-  print results
