@@ -1,5 +1,5 @@
 ﻿/*
- * This file contains C#/.NET 4.5 implementations for 7th week homework of the CS1156x "Learning From Data" at eDX
+ * This file contains C#/.NET 4.5 implementations for 8th week homework of the CS1156x "Learning From Data" at eDX
  * 
  * External libraries required: 
  *    math.numerics-2.6.2 (Install-Package MathNet.Numerics)
