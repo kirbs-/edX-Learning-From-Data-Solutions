@@ -32,3 +32,4 @@ Contributors
 * Victoras (C++)
 * fedelebron (Haskell)
 * Legendre (Mathmatica)
+* danimauri (Python)
