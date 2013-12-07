@@ -33,3 +33,5 @@ Contributors
 * fedelebron (Haskell)
 * Legendre (Mathmatica)
 * danimauri (Python)
+* Mark_B2 (Python)
+* kanhua (MATLAB)
