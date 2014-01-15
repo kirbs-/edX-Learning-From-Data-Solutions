@@ -21,10 +21,26 @@ def q1(variance, d):
 def gradientError(u, v):
     return (u*numpy.exp(v) - 2*v*numpy.exp(-u))**2
 
+def dE_du(u, v):
+    '''
+    returns partial derivative of E with respect to u.
+    '''
+    return 2 * ( u*numpy.exp(v) - 2*v*numpy.exp(-u) ) * ( numpy.exp(v) + 2*v*numpy.exp(-u) )
 
-def updateWeights(weights, n, error):
-    for i in range(len(weights)):
-        weights[i] -= n
+def dE_dv(u,v):
+    '''
+    returns partial derivative of E with respect to v.
+    '''
+    return  2 * ( u * numpy.exp(v) - 2*v*numpy.exp(-u) ) * ( u*numpy.exp(v) - 2*numpy.exp(-u))
+
+def updateWeights(weights, n):
+    '''
+    new_weight = old_weight - (learning rate) * (partial derivative w.r.t. u or v)
+    '''
+    u = weights[0]
+    v = weights[1]
+    weights[0] -= n * dE_du(u, v)
+    weights[1] -= n * dE_dv(u, v)
     return weights
 
 
@@ -42,7 +58,7 @@ def q5():
             print iterations
             break
         else:
-            weights = updateWeights(weights, n, error)
+            weights = updateWeights(weights, n)
 
     print gradientError(weights[0], weights[1])
     return weights
