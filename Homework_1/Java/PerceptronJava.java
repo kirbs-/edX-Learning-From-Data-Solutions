@@ -1,26 +1,28 @@
-package main;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.concurrent.ThreadLocalRandom;
 
-import java.util.Random;
 
-public class PerceptronJava 
+public class PerceptronJava
 {
+
 	public static class  Point
 	{
+		double yn;
+		double x;
 		double y;
-		double x1;
-		double x2;
 
 		public Point(double xcoord, double ycoord, double yn)
 		{
-			this.x1 = xcoord;
-			this.x2 = ycoord;
-			this.y = yn;
+			this.x = xcoord;
+			this.y = ycoord;
+			this.yn = yn;
 		}
 
 		public Point(double xcoord, double ycoord)
 		{
-			this.x1 = xcoord;
-			this.x2 = ycoord;
+			this.x = xcoord;
+			this.y = ycoord;
 		}
 
 	}
@@ -43,25 +45,24 @@ public class PerceptronJava
 
 	public static double randomDouble(double min, double max)
 	{
-		Random rand = new Random();
-		double randomValue = min + (max - min) * rand.nextDouble();
-		return randomValue;
+		//double randomValue = min + (max - min) * rand.nextDouble();
+		return (ThreadLocalRandom.current().nextDouble() * (max - min)) + min;
 	}
 
-	
+
 	public static void RunSimulation(int trials, int numOfPoints)
 	{
-		int iterations = 0;
+		long iterations = 0;
 		double rateSum = 0.0;
-		int count;
-		int[] counts = new int[trials];
+		long count;
+		long[] counts = new long[trials];
 		double[] rates = new double[trials];
-		
+
 		for (int i = 0; i < trials; i++)
 		{
 			double[] weights = new double[]{0.0, 0.0, 0.0};
 			count = 0;
-			
+
 			//Create line to initialize the point data
 			double x1 = randomDouble(-1.0, 1.0);
 			double x2 = randomDouble(-1.0, 1.0);
@@ -71,7 +72,7 @@ public class PerceptronJava
 
 			Line line = new Line(x1, y1, x2, y2);
 
-			Point[] points = new Point[numOfPoints];
+			ArrayList<Point> points = new ArrayList();
 
 			//populate the array with points and their respective +/-
 			for(int j = 0; j < numOfPoints; j++)
@@ -82,16 +83,14 @@ public class PerceptronJava
 
 				Point p = new Point(newX, newY, 0.0);
 
-				double pointY = p.x2;
-				double lineY = (line.m * p.x1) + line.b;
+				double lineY = (line.m * p.x) + line.b;
 
-				if(pointY > lineY)
-					p.y = 1.0;
+				if(p.y > lineY)
+					p.yn = 1.0;
 				else
-					p.y = -1.0;
+					p.yn = -1.0;
 
-				points[j] = p;
-
+				points.add(p);
 			}
 
 			//run PLA on points
@@ -99,34 +98,34 @@ public class PerceptronJava
 			do
 			{
 				mistake = false;
-				int k = 0;
-				for(k = 0; k < numOfPoints; k++)
+				for(int k = 0; k < numOfPoints; k++)
 				{
-					double actualY = points[k].y;
-					double dotProd = (weights[0] + (weights[1] * points[k].x1) + (weights[2] * points[k].x2));
+					Point p_k = points.get(k);
+					double actualY = p_k.yn;
+					double dotProd = weights[0] + (weights[1] * p_k.x) + (weights[2] * p_k.y);
 					double calcY;
 
 					if (dotProd > 0)
 						calcY = 1.0;
-					else 
+					else
 						calcY = -1.0;
 
 					if (actualY != calcY)
 					{
 						mistake = true;
 						count ++;
-						
+
 						weights[0] +=  actualY;
-						weights[1] +=  (actualY * points[k].x1);
-						weights[2] +=  (actualY * points[k].x2);
-						
+						weights[1] +=  (actualY * p_k.x);
+						weights[2] +=  (actualY * p_k.y);
+
+						Collections.shuffle(points);
+
 						break;
-
 					}
-
 				}
-			}while(mistake);
-		
+			} while(mistake);
+
 			counts[i] = count;
 			//Test Probability using the final trial weights, and last initialized Line object
 			int errors = 0;
@@ -134,51 +133,54 @@ public class PerceptronJava
 			{
 				double randX1 = randomDouble(-1.0, 1.0);
 				double randX2 = randomDouble(-1.0, 1.0);
-				
+
 				double targetY = (line.m * randX1) + line.b;
 				double randY;
-				
+
 				if(randX2 > targetY)
-					 randY = 1.0;
-				else 
+					randY = 1.0;
+				else
 					randY = -1.0;
-				
+
 				double dotProd = weights[0] + (weights[1] * randX1) + (weights[2] * randX2);
 				double guessY;
 				if (dotProd > 0)
 					guessY = 1.0;
-				else 
+				else
 					guessY = -1.0;
-				
+
 				if (randY != guessY)
 					errors++;
-				
-				
+
+
 			}
 			double rate =  (double)errors / 100.0;
 			rates[i] = rate;
 
 		}
-		
-		
+
+
 		for(int l = 0; l < trials; l++)
 		{
 			iterations += counts[l];
 			rateSum += rates[l];
 		}
-		
+
 		System.out.println("Average Iterations: ");
 		System.out.println((double)iterations / trials);
-		
+
 		System.out.println("Average rate: ");
 		System.out.println(rateSum / (double)trials);
-		
+
 	}
-	
-	public static void main(String[] args) 
+
+	public static void main(String[] args)
 	{
-		RunSimulation(10000, 100);
-		
+
+		for (int i = 0; i < 10; i++) {
+			RunSimulation(10000, 10);
+		}
+
 	}
-	
+
 }
